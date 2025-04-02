@@ -1,0 +1,23 @@
+{
+  "name": "data-prov-visual",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "cytoscape": "^3.31.1",
+    "cytoscape-dagre": "^2.5.0",
+    "d3": "^7.9.0",
+    "express": "^5.1.0",
+    "lodash": "^4.17.21",
+    "next": "^15.2.4",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  }
+}
