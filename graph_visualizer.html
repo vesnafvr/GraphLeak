@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSV Graph Visualizer</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #0a0a0a;
+            color: #87ceaa;
+            overflow: hidden;
+        }
+
+        .terminal-container {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            border: 2px solid #87ceaa;
+            margin: 10px;
+            background: #111;
+        }
+
+        .terminal-header {
+            background: #1a1a1a;
+            padding: 10px;
+            border-bottom: 1px solid #87ceaa;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .tab-bar {
+            background: #151515;
+            border-bottom: 1px solid #87ceaa;
+            padding: 5px 10px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            overflow-x: auto;
+        }
+
+        .tab {
+            background: #1a1a1a;
+            color: #87ceaa;
+            border: 1px solid #87ceaa;
+            padding: 8px 15px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 12px;
+            transition: all 0.2s;
+            white-space: nowrap;
+            position: relative;
+            min-width: 100px;
+            text-align: center;
+        }
+
+        .tab:hover {
+            background: #2a2a2a;
+        }
+
+        .tab.active {
+            background: #87ceaa;
+            color: #000;
+        }
+
+        .tab-close {
+            position: absolute;
+            right: 5px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: inherit;
+            cursor: pointer;
+            font-size: 14px;
+            width: 16px;
+            height: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.7;
+        }
+
+        .tab-close:hover {
+            opacity: 1;
+            background: rgba(255,255,255,0.2);
+            border-radius: 2px;
+        }
+
+        .tab.active .tab-close {
+            color: #000;
+        }
+
+        .add-tab-btn {
+            background: #1a1a1a;
+            color: #87ceaa;
+            border: 1px solid #87ceaa;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+
+        .add-tab-btn:hover {
+            background: #87ceaa;
+            color: #000;
+        }
+
+        .terminal-title {
+            font-size: 14px;
+            color: #87ceaa;
+        }
+
+        .terminal-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            background: #1a1a1a;
+            color: #87ceaa;
+            border: 1px solid #87ceaa;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+
+        .btn:hover {
+            background: #87ceaa;
+            color: #000;
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            position: relative;
+            min-height: 0;
+        }
+
+        .sidebar {
+            width: 300px;
+            background: #0f0f0f;
+            border-right: 1px solid #87ceaa;
+            padding: 20px;
+            overflow-y: auto;
+            height: 100%;
+        }
+
+        .sidebar::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .sidebar::-webkit-scrollbar-track {
+            background: #1a1a1a;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: #87ceaa;
+            border-radius: 4px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb:hover {
+            background: #a8d4c5;
+        }
+
+        .drop-zone {
+            border: 2px dashed #87ceaa;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .drop-zone:hover, .drop-zone.dragover {
+            background: rgba(135, 206, 170, 0.1);
+            border-color: #a8d4c5;
+        }
+
+        .graph-container {
+            flex: 1;
+            position: relative;
+            background: #0a0a0a;
+            overflow: hidden;
+        }
+
+        .graph-canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        .node {
+            fill: #4a6b5c;
+            stroke: #87ceaa;
+            stroke-width: 2px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .node:hover {
+            fill: #5a7b6c;
+            stroke-width: 3px;
+        }
+
+        .node.selected {
+            fill: #d4a574;
+            stroke: #ffcc88;
+        }
+
+        .edge {
+            stroke: #87ceaa;
+            stroke-width: 2px;
+            opacity: 0.7;
+        }
+
+        .edge:hover {
+            stroke-width: 3px;
+            opacity: 1;
+        }
+
+        .node-label {
+            fill: #c5d4aa;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            text-anchor: middle;
+            pointer-events: none;
+        }
+
+        .stats {
+            background: #1a1a1a;
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid #87ceaa;
+        }
+
+        .stats h3 {
+            color: #87ceaa;
+            margin-bottom: 10px;
+        }
+
+        .stat-line {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+
+        .controls {
+            background: #1a1a1a;
+            padding: 15px;
+            border: 1px solid #00ff00;
+        }
+
+        .controls h3 {
+            color: #00ff00;
+            margin-bottom: 10px;
+        }
+
+        .control-group {
+            margin-bottom: 15px;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 12px;
+        }
+
+        .control-group input, .control-group select {
+            width: 100%;
+            background: #0a0a0a;
+            color: #00ff00;
+            border: 1px solid #00ff00;
+            padding: 5px;
+            font-family: inherit;
+            font-size: 12px;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .console {
+            background: #0a0a0a;
+            border: 1px solid #87ceaa;
+            padding: 10px;
+            margin-top: 20px;
+            height: 120px;
+            overflow-y: auto;
+            font-size: 11px;
+        }
+
+        .console::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .console::-webkit-scrollbar-track {
+            background: #1a1a1a;
+        }
+
+        .console::-webkit-scrollbar-thumb {
+            background: #87ceaa;
+            border-radius: 3px;
+        }
+
+        .console-line {
+            margin-bottom: 2px;
+        }
+
+        .console-line.error {
+            color: #ff8888;
+        }
+
+        .console-line.success {
+            color: #a8d4c5;
+        }
+
+        .add-node-form, .add-edge-form {
+            display: none;
+            background: #1a1a1a;
+            border: 1px solid #87ceaa;
+            padding: 15px;
+            margin-top: 10px;
+        }
+
+        .add-node-form.show, .add-edge-form.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="terminal-container">
+        <div class="terminal-header">
+            <div class="terminal-title">graph_visualizer.exe - CSV Graph Analysis Tool v1.0</div>
+            <div class="terminal-controls">
+                <button class="btn" onclick="clearGraph()">CLEAR</button>
+                <button class="btn" onclick="exportGraph()">EXPORT</button>
+                <button class="btn" onclick="resetView()">RESET VIEW</button>
+            </div>
+        </div>
+
+        <div class="tab-bar">
+            <div class="tab active" data-tab-id="1" onclick="switchTab(1)">
+                <span>Graph_1</span>
+                <button class="tab-close" onclick="closeTab(event, 1)">×</button>
+            </div>
+            <button class="add-tab-btn" onclick="addNewTab()">+</button>
+        </div>
+
+        <div class="main-content">
+            <div class="sidebar">
+                <div class="drop-zone" onclick="document.getElementById('csvFile').click()">
+                    <div>DROP CSV FILE HERE</div>
+                    <div style="font-size: 11px; margin-top: 10px;">or click to browse</div>
+                </div>
+                <input type="file" id="csvFile" class="file-input" accept=".csv" onchange="handleFileSelect(event)">
+
+                <div class="stats">
+                    <h3>&gt; GRAPH STATS</h3>
+                    <div class="stat-line">
+                        <span>NODES:</span>
+                        <span id="nodeCount">0</span>
+                    </div>
+                    <div class="stat-line">
+                        <span>EDGES:</span>
+                        <span id="edgeCount">0</span>
+                    </div>
+                    <div class="stat-line">
+                        <span>SELECTED:</span>
+                        <span id="selectedCount">none</span>
+                    </div>
+                </div>
+
+                <div class="controls">
+                    <h3>&gt; CONTROLS</h3>
+                    <div class="control-group">
+                        <label>Layout Algorithm:</label>
+                        <select id="layoutSelect" onchange="updateLayout()">
+                            <option value="force">Force-directed</option>
+                            <option value="circle">Circle</option>
+                            <option value="grid">Grid</option>
+                        </select>
+                    </div>
+                    <div class="control-group">
+                        <label>Node Size:</label>
+                        <input type="range" id="nodeSize" min="5" max="30" value="15" onchange="updateNodeSize()">
+                    </div>
+                    <button class="btn" onclick="toggleAddNode()">ADD NODE</button>
+                    <button class="btn" onclick="toggleAddEdge()">ADD EDGE</button>
+                    <button class="btn" onclick="deleteSelected()">DELETE SELECTED</button>
+                </div>
+
+                <div class="add-node-form" id="addNodeForm">
+                    <h3>&gt; ADD NODE</h3>
+                    <input type="text" id="nodeId" placeholder="Node ID" style="margin-bottom: 10px;">
+                    <input type="text" id="nodeLabel" placeholder="Node Label (optional)" style="margin-bottom: 10px;">
+                    <button class="btn" onclick="addNode()">CREATE</button>
+                    <button class="btn" onclick="cancelAddNode()">CANCEL</button>
+                </div>
+
+                <div class="add-edge-form" id="addEdgeForm">
+                    <h3>&gt; ADD EDGE</h3>
+                    <input type="text" id="edgeSource" placeholder="Source Node ID" style="margin-bottom: 10px;">
+                    <input type="text" id="edgeTarget" placeholder="Target Node ID" style="margin-bottom: 10px;">
+                    <button class="btn" onclick="addEdge()">CREATE</button>
+                    <button class="btn" onclick="cancelAddEdge()">CANCEL</button>
+                </div>
+
+                <div class="console" id="console"></div>
+            </div>
+
+            <div class="graph-container">
+                <svg class="graph-canvas" id="graphCanvas">
+                    <defs>
+                        <marker id="arrowhead" markerWidth="10" markerHeight="7" 
+                                refX="9" refY="3.5" orient="auto">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="#87ceaa" />
+                        </marker>
+                    </defs>
+                </svg>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let sessions = {
+            1: {
+                name: 'Graph_1',
+                graphData: { nodes: [], edges: [] },
+                selectedNodes: new Set()
+            }
+        };
+        let currentSessionId = 1;
+        let nextSessionId = 2;
+        
+        let simulation;
+        let svg, nodesGroup, edgesGroup, labelsGroup;
+        let nodeSize = 15;
+
+        // Console logging function
+        function log(message, type = "info") {
+            const consoleEl = document.getElementById('console');
+            if (consoleEl) {
+                const line = document.createElement('div');
+                line.className = `console-line ${type}`;
+                line.textContent = `> ${message}`;
+                consoleEl.appendChild(line);
+                consoleEl.scrollTop = consoleEl.scrollHeight;
+            }
+        }
+
+        function getCurrentSession() {
+            return sessions[currentSessionId];
+        }
+
+        function getCurrentGraphData() {
+            return getCurrentSession().graphData;
+        }
+
+        function getCurrentSelectedNodes() {
+            return getCurrentSession().selectedNodes;
+        }
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                log(`Selected file: ${file.name}`, "success");
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    log("File read successfully, parsing...", "success");
+                    parseCSV(e.target.result);
+                };
+                reader.onerror = function() {
+                    log("Error reading file", "error");
+                };
+                reader.readAsText(file);
+            }
+        }
+
+        function initializeGraph() {
+            log("Starting graph initialization...", "success");
+            
+            svg = d3.select("#graphCanvas");
+            if (!svg.node()) {
+                log("Error: SVG canvas not found!", "error");
+                return;
+            }
+            
+            const container = svg.node().getBoundingClientRect();
+            log(`Canvas size: ${container.width}x${container.height}`, "success");
+            
+            svg.attr("width", container.width)
+               .attr("height", container.height);
+
+            // Clear any existing groups
+            svg.selectAll("g").remove();
+
+            edgesGroup = svg.append("g").attr("class", "edges");
+            nodesGroup = svg.append("g").attr("class", "nodes");
+            labelsGroup = svg.append("g").attr("class", "labels");
+
+            // Add zoom behavior
+            const zoom = d3.zoom()
+                .scaleExtent([0.1, 10])
+                .on("zoom", (event) => {
+                    nodesGroup.attr("transform", event.transform);
+                    edgesGroup.attr("transform", event.transform);
+                    labelsGroup.attr("transform", event.transform);
+                });
+
+            svg.call(zoom);
+
+            // Initialize force simulation
+            simulation = d3.forceSimulation()
+                .force("link", d3.forceLink().id(d => d.id).distance(100))
+                .force("charge", d3.forceManyBody().strength(-300))
+                .force("center", d3.forceCenter(container.width / 2, container.height / 2))
+                .force("collision", d3.forceCollide().radius(nodeSize + 5));
+
+            log("Graph initialization complete - ready for data!", "success");
+            updateStats();
+        }
+
+        function parseCSV(csvText) {
+            if (!csvText || csvText.trim() === '') {
+                log("Error: Empty CSV file", "error");
+                return;
+            }
+
+            const lines = csvText.trim().split('\n');
+            if (lines.length < 2) {
+                log("Error: CSV must have at least 2 lines (header + data)", "error");
+                return;
+            }
+
+            const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+            
+            log(`Parsing CSV with ${lines.length - 1} rows and headers: ${headers.join(', ')}...`);
+            
+            // Determine CSV format
+            if (headers.includes('source') && headers.includes('target')) {
+                log("Detected edge list format", "success");
+                parseEdgeList(lines);
+            } else if (headers.includes('id') || headers.includes('node')) {
+                log("Detected node list format", "success");
+                parseNodeList(lines);
+            } else {
+                log("Auto-detecting format - assuming first two columns are source,target", "success");
+                if (lines.length > 1) {
+                    const firstRow = lines[1].split(',');
+                    if (firstRow.length >= 2) {
+                        parseEdgeList(lines, true);
+                    } else {
+                        log("Error: Cannot determine CSV format", "error");
+                        return;
+                    }
+                }
+            }
+            
+            log("CSV parsing completed, updating graph...", "success");
+            updateGraph();
+        }
+
+        function parseEdgeList(lines, autoDetect = false) {
+            const nodes = new Map();
+            const edges = [];
+
+            for (let i = 1; i < lines.length; i++) {
+                const row = lines[i].split(',').map(cell => cell.trim());
+                if (row.length < 2) continue;
+                
+                const source = row[0];
+                const target = row[1];
+
+                if (source && target && source !== target) {
+                    if (!nodes.has(source)) {
+                        nodes.set(source, { id: source, label: source });
+                    }
+                    if (!nodes.has(target)) {
+                        nodes.set(target, { id: target, label: target });
+                    }
+
+                    edges.push({ source, target });
+                }
+            }
+
+            const currentSession = getCurrentSession();
+            currentSession.graphData = {
+                nodes: Array.from(nodes.values()),
+                edges: edges
+            };
+            currentSession.selectedNodes.clear();
+            
+            log(`Loaded ${currentSession.graphData.nodes.length} nodes and ${currentSession.graphData.edges.length} edges.`);
+        }
+
+        function parseNodeList(lines) {
+            const nodes = [];
+
+            for (let i = 1; i < lines.length; i++) {
+                const row = lines[i].split(',').map(cell => cell.trim());
+                if (row.length < 1) continue;
+                
+                const node = { id: row[0], label: row[1] || row[0] };
+                if (node.id) {
+                    nodes.push(node);
+                }
+            }
+
+            const currentSession = getCurrentSession();
+            currentSession.graphData = {
+                nodes: nodes,
+                edges: []
+            };
+            currentSession.selectedNodes.clear();
+            
+            log(`Loaded ${currentSession.graphData.nodes.length} nodes.`);
+        }
+
+        function updateGraph() {
+            if (!simulation) {
+                log("Error: Graph not initialized", "error");
+                return;
+            }
+
+            const graphData = getCurrentGraphData();
+
+            simulation.nodes(graphData.nodes);
+            simulation.force("link").links(graphData.edges);
+
+            // Update edges
+            const edges = edgesGroup.selectAll(".edge")
+                .data(graphData.edges);
+
+            edges.enter().append("line")
+                .attr("class", "edge")
+                .attr("marker-end", "url(#arrowhead)")
+                .merge(edges);
+
+            edges.exit().remove();
+
+            // Update nodes
+            const nodes = nodesGroup.selectAll(".node")
+                .data(graphData.nodes);
+
+            const nodeEnter = nodes.enter().append("circle")
+                .attr("class", "node")
+                .attr("r", nodeSize)
+                .on("click", handleNodeClick)
+                .call(d3.drag()
+                    .on("start", dragStarted)
+                    .on("drag", dragged)
+                    .on("end", dragEnded));
+
+            nodes.merge(nodeEnter);
+            nodes.exit().remove();
+
+            // Update labels
+            const labels = labelsGroup.selectAll(".node-label")
+                .data(graphData.nodes);
+
+            labels.enter().append("text")
+                .attr("class", "node-label")
+                .text(d => d.label || d.id)
+                .attr("dy", 5)
+                .merge(labels);
+
+            labels.exit().remove();
+
+            // Update node selection states
+            const selectedNodes = getCurrentSelectedNodes();
+            nodesGroup.selectAll(".node")
+                .classed("selected", d => selectedNodes.has(d.id));
+
+            simulation.on("tick", () => {
+                edgesGroup.selectAll(".edge")
+                    .attr("x1", d => d.source.x)
+                    .attr("y1", d => d.source.y)
+                    .attr("x2", d => d.target.x)
+                    .attr("y2", d => d.target.y);
+
+                nodesGroup.selectAll(".node")
+                    .attr("cx", d => d.x)
+                    .attr("cy", d => d.y);
+
+                labelsGroup.selectAll(".node-label")
+                    .attr("x", d => d.x)
+                    .attr("y", d => d.y);
+            });
+
+            simulation.alpha(1).restart();
+            updateStats();
+        }
+
+        function handleNodeClick(event, d) {
+            event.stopPropagation();
+            
+            const selectedNodes = getCurrentSelectedNodes();
+            
+            if (selectedNodes.has(d.id)) {
+                selectedNodes.delete(d.id);
+                d3.select(event.currentTarget).classed("selected", false);
+            } else {
+                selectedNodes.add(d.id);
+                d3.select(event.currentTarget).classed("selected", true);
+            }
+            
+            updateStats();
+        }
+
+        function dragStarted(event, d) {
+            if (!event.active) simulation.alphaTarget(0.3).restart();
+            d.fx = d.x;
+            d.fy = d.y;
+        }
+
+        function dragged(event, d) {
+            d.fx = event.x;
+            d.fy = event.y;
+        }
+
+        function dragEnded(event, d) {
+            if (!event.active) simulation.alphaTarget(0);
+            d.fx = null;
+            d.fy = null;
+        }
+
+        function updateStats() {
+            const graphData = getCurrentGraphData();
+            const selectedNodes = getCurrentSelectedNodes();
+            
+            document.getElementById('nodeCount').textContent = graphData.nodes.length;
+            document.getElementById('edgeCount').textContent = graphData.edges.length;
+            document.getElementById('selectedCount').textContent = 
+                selectedNodes.size > 0 ? selectedNodes.size : 'none';
+        }
+
+        function updateLayout() {
+            const layout = document.getElementById('layoutSelect').value;
+            const container = svg.node().getBoundingClientRect();
+            const graphData = getCurrentGraphData();
+            
+            if (layout === 'circle') {
+                const radius = Math.min(container.width, container.height) / 3;
+                const angleStep = (2 * Math.PI) / graphData.nodes.length;
+                
+                graphData.nodes.forEach((node, i) => {
+                    const angle = i * angleStep;
+                    node.fx = container.width / 2 + radius * Math.cos(angle);
+                    node.fy = container.height / 2 + radius * Math.sin(angle);
+                });
+            } else if (layout === 'grid') {
+                const cols = Math.ceil(Math.sqrt(graphData.nodes.length));
+                const cellWidth = container.width / cols;
+                const cellHeight = container.height / Math.ceil(graphData.nodes.length / cols);
+                
+                graphData.nodes.forEach((node, i) => {
+                    const row = Math.floor(i / cols);
+                    const col = i % cols;
+                    node.fx = col * cellWidth + cellWidth / 2;
+                    node.fy = row * cellHeight + cellHeight / 2;
+                });
+            } else {
+                graphData.nodes.forEach(node => {
+                    node.fx = null;
+                    node.fy = null;
+                });
+            }
+            
+            simulation.alpha(1).restart();
+        }
+
+        function updateNodeSize() {
+            nodeSize = parseInt(document.getElementById('nodeSize').value);
+            nodesGroup.selectAll(".node").attr("r", nodeSize);
+            simulation.force("collision").radius(nodeSize + 5);
+        }
+
+        function toggleAddNode() {
+            const form = document.getElementById('addNodeForm');
+            form.classList.toggle('show');
+        }
+
+        function toggleAddEdge() {
+            const form = document.getElementById('addEdgeForm');
+            form.classList.toggle('show');
+        }
+
+        function addNode() {
+            const id = document.getElementById('nodeId').value.trim();
+            const label = document.getElementById('nodeLabel').value.trim() || id;
+            const graphData = getCurrentGraphData();
+            
+            if (!id) {
+                log("Error: Node ID required.", "error");
+                return;
+            }
+            
+            if (graphData.nodes.find(n => n.id === id)) {
+                log("Error: Node ID already exists.", "error");
+                return;
+            }
+            
+            graphData.nodes.push({ id, label });
+            updateGraph();
+            cancelAddNode();
+            log(`Added node: ${id}`, "success");
+        }
+
+        function addEdge() {
+            const source = document.getElementById('edgeSource').value.trim();
+            const target = document.getElementById('edgeTarget').value.trim();
+            const graphData = getCurrentGraphData();
+            
+            if (!source || !target) {
+                log("Error: Both source and target required.", "error");
+                return;
+            }
+            
+            if (!graphData.nodes.find(n => n.id === source)) {
+                log("Error: Source node not found.", "error");
+                return;
+            }
+            
+            if (!graphData.nodes.find(n => n.id === target)) {
+                log("Error: Target node not found.", "error");
+                return;
+            }
+            
+            graphData.edges.push({ source, target });
+            updateGraph();
+            cancelAddEdge();
+            log(`Added edge: ${source} -> ${target}`, "success");
+        }
+
+        function cancelAddNode() {
+            document.getElementById('addNodeForm').classList.remove('show');
+            document.getElementById('nodeId').value = '';
+            document.getElementById('nodeLabel').value = '';
+        }
+
+        function cancelAddEdge() {
+            document.getElementById('addEdgeForm').classList.remove('show');
+            document.getElementById('edgeSource').value = '';
+            document.getElementById('edgeTarget').value = '';
+        }
+
+        function deleteSelected() {
+            const selectedNodes = getCurrentSelectedNodes();
+            const graphData = getCurrentGraphData();
+            
+            if (selectedNodes.size === 0) {
+                log("No nodes selected.", "error");
+                return;
+            }
+            
+            graphData.nodes = graphData.nodes.filter(node => !selectedNodes.has(node.id));
+            
+            graphData.edges = graphData.edges.filter(edge => 
+                !selectedNodes.has(edge.source.id || edge.source) && 
+                !selectedNodes.has(edge.target.id || edge.target)
+            );
+            
+            log(`Deleted ${selectedNodes.size} nodes and connected edges.`, "success");
+            selectedNodes.clear();
+            updateGraph();
+        }
+
+        function clearGraph() {
+            const currentSession = getCurrentSession();
+            currentSession.graphData = { nodes: [], edges: [] };
+            currentSession.selectedNodes.clear();
+            updateGraph();
+            log("Graph cleared.", "success");
+        }
+
+        function resetView() {
+            svg.transition().duration(750).call(
+                d3.zoom().transform,
+                d3.zoomIdentity
+            );
+        }
+
+        function exportGraph() {
+            const graphData = getCurrentGraphData();
+            const csvContent = "source,target\n" + 
+                graphData.edges.map(e => `${e.source.id || e.source},${e.target.id || e.target}`).join("\n");
+            
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'graph_export.csv';
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            log("Graph exported to CSV.", "success");
+        }
+
+        function addNewTab() {
+            const sessionId = nextSessionId++;
+            const sessionName = `Graph_${sessionId}`;
+            
+            sessions[sessionId] = {
+                name: sessionName,
+                graphData: { nodes: [], edges: [] },
+                selectedNodes: new Set()
+            };
+            
+            const tabBar = document.querySelector('.tab-bar');
+            const addBtn = tabBar.querySelector('.add-tab-btn');
+            
+            const newTab = document.createElement('div');
+            newTab.className = 'tab';
+            newTab.setAttribute('data-tab-id', sessionId);
+            newTab.onclick = () => switchTab(sessionId);
+            newTab.innerHTML = `
+                <span>${sessionName}</span>
+                <button class="tab-close" onclick="closeTab(event, ${sessionId})">×</button>
+            `;
+            
+            tabBar.insertBefore(newTab, addBtn);
+            switchTab(sessionId);
+            
+            log(`Created new session: ${sessionName}`, "success");
+        }
+
+        function switchTab(sessionId) {
+            currentSessionId = sessionId;
+            
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelector(`[data-tab-id="${sessionId}"]`).classList.add('active');
+            
+            updateGraph();
+            
+            log(`Switched to ${sessions[sessionId].name}`, "success");
+        }
+
+        function closeTab(event, sessionId) {
+            event.stopPropagation();
+            
+            if (Object.keys(sessions).length === 1) {
+                log("Cannot close the last tab", "error");
+                return;
+            }
+            
+            document.querySelector(`[data-tab-id="${sessionId}"]`).remove();
+            
+            if (sessionId === currentSessionId) {
+                const remainingIds = Object.keys(sessions).filter(id => id != sessionId);
+                const newCurrentId = parseInt(remainingIds[0]);
+                switchTab(newCurrentId);
+            }
+            
+            delete sessions[sessionId];
+            
+            log("Closed session", "success");
+        }
+
+        // Initialize when page loads
+        function initializeApp() {
+            log("Application starting up...", "success");
+            
+            // Setup drag and drop functionality
+            const dropZone = document.querySelector('.drop-zone');
+            
+            if (dropZone) {
+                log("Setting up drag & drop...", "success");
+                
+                dropZone.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    dropZone.classList.add('dragover');
+                });
+                
+                dropZone.addEventListener('dragleave', () => {
+                    dropZone.classList.remove('dragover');
+                });
+                
+                dropZone.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    dropZone.classList.remove('dragover');
+                    
+                    const files = e.dataTransfer.files;
+                    if (files.length > 0) {
+                        const file = files[0];
+                        log(`Dropped file: ${file.name} (${file.type})`, "success");
+                        if (file.type === 'text/csv' || file.name.endsWith('.csv')) {
+                            const reader = new FileReader();
+                            reader.onload = function(e) {
+                                log("Drag & drop file read successfully, parsing...", "success");
+                                parseCSV(e.target.result);
+                            };
+                            reader.onerror = function() {
+                                log("Error reading dropped file", "error");
+                            };
+                            reader.readAsText(file);
+                        } else {
+                            log("Please drop a CSV file.", "error");
+                        }
+                    }
+                });
+            } else {
+                log("Error: Drop zone not found!", "error");
+            }
+            
+            // Check if D3 is loaded and initialize
+            if (typeof d3 !== 'undefined') {
+                log("D3.js loaded successfully", "success");
+                initializeGraph();
+            } else {
+                log("Error: D3.js not loaded", "error");
+            }
+        }
+
+        // Wait for DOM to be ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeApp);
+        } else {
+            initializeApp();
+        }
+    </script>
+</body>
+</html>
