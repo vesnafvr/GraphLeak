@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CSV Graph Visualizer</title>
+    <title>GraphLeak - Graphical Visualization Analysis Tool</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
     <style>
         * {
@@ -24,7 +24,7 @@
             display: flex;
             flex-direction: column;
             border: 2px solid #87ceaa;
-            margin: 10px;
+            margin: 5px;
             background: #111;
         }
 
@@ -129,14 +129,19 @@
             background: #1a1a1a;
             color: #87ceaa;
             border: 1px solid #87ceaa;
-            padding: 5px 10px;
+            padding: 4px 8px;
             cursor: pointer;
             font-family: inherit;
-            font-size: 12px;
+            font-size: 11px;
             transition: all 0.2s;
         }
 
         .btn:hover {
+            background: #87ceaa;
+            color: #000;
+        }
+
+        .btn.active {
             background: #87ceaa;
             color: #000;
         }
@@ -149,12 +154,13 @@
         }
 
         .sidebar {
-            width: 300px;
+            width: 200px;
             background: #0f0f0f;
             border-right: 1px solid #87ceaa;
-            padding: 20px;
+            padding: 10px;
             overflow-y: auto;
             height: 100%;
+            flex-shrink: 0;
         }
 
         .sidebar::-webkit-scrollbar {
@@ -176,11 +182,12 @@
 
         .drop-zone {
             border: 2px dashed #87ceaa;
-            padding: 30px;
+            padding: 15px;
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
             cursor: pointer;
             transition: all 0.3s;
+            font-size: 11px;
         }
 
         .drop-zone:hover, .drop-zone.dragover {
@@ -239,14 +246,15 @@
 
         .stats {
             background: #1a1a1a;
-            padding: 15px;
-            margin-bottom: 20px;
+            padding: 10px;
+            margin-bottom: 10px;
             border: 1px solid #87ceaa;
         }
 
         .stats h3 {
             color: #87ceaa;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
+            font-size: 13px;
         }
 
         .stat-line {
@@ -257,17 +265,18 @@
 
         .controls {
             background: #1a1a1a;
-            padding: 15px;
+            padding: 10px;
             border: 1px solid #00ff00;
         }
 
         .controls h3 {
             color: #00ff00;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
+            font-size: 13px;
         }
 
         .control-group {
-            margin-bottom: 15px;
+            margin-bottom: 10px;
         }
 
         .control-group label {
@@ -293,11 +302,11 @@
         .console {
             background: #0a0a0a;
             border: 1px solid #87ceaa;
-            padding: 10px;
-            margin-top: 20px;
-            height: 120px;
+            padding: 8px;
+            margin-top: 10px;
+            height: 100px;
             overflow-y: auto;
-            font-size: 11px;
+            font-size: 10px;
         }
 
         .console::-webkit-scrollbar {
@@ -336,13 +345,176 @@
         .add-node-form.show, .add-edge-form.show {
             display: block;
         }
+
+        /* Comparison Mode Styles */
+        .comparison-mode {
+            display: none;
+        }
+
+        .comparison-mode.active {
+            display: flex;
+            height: 100%;
+        }
+
+        .comparison-graph {
+            flex: 1;
+            position: relative;
+            background: #0a0a0a;
+            border-right: 1px solid #87ceaa;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            min-width: 0;
+        }
+
+        .comparison-graph:last-of-type {
+            border-right: none;
+        }
+
+        .comparison-graph-header {
+            background: #1a1a1a;
+            padding: 10px;
+            border-bottom: 1px solid #87ceaa;
+            text-align: center;
+            color: #87ceaa;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .comparison-graph-canvas {
+            flex: 1;
+            width: 100%;
+            height: 100%;
+            min-height: 0;
+        }
+
+        .comparison-panel {
+            width: 180px;
+            background: #0f0f0f;
+            border-left: 1px solid #87ceaa;
+            padding: 10px;
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+
+        .comparison-panel h3 {
+            color: #87ceaa;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #87ceaa;
+            padding-bottom: 5px;
+            font-size: 12px;
+        }
+
+        .comparison-selectors {
+            margin-bottom: 20px;
+        }
+
+        .comparison-selectors label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 12px;
+            color: #87ceaa;
+        }
+
+        .comparison-selectors select {
+            width: 100%;
+            background: #0a0a0a;
+            color: #87ceaa;
+            border: 1px solid #87ceaa;
+            padding: 5px;
+            font-family: inherit;
+            font-size: 12px;
+            margin-bottom: 10px;
+        }
+
+        .comparison-stats {
+            background: #1a1a1a;
+            border: 1px solid #87ceaa;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+
+        .comparison-stat-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            font-size: 12px;
+        }
+
+        .comparison-stat-label {
+            color: #87ceaa;
+            font-weight: bold;
+        }
+
+        .comparison-stat-values {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .comparison-value {
+            color: #c5d4aa;
+            min-width: 30px;
+            text-align: center;
+        }
+
+        .comparison-diff {
+            color: #d4a574;
+            font-weight: bold;
+            min-width: 40px;
+            text-align: center;
+        }
+
+        .comparison-diff.positive {
+            color: #a8d4c5;
+        }
+
+        .comparison-diff.negative {
+            color: #ff8888;
+        }
+
+        .single-mode {
+            display: flex;
+        }
+
+        .single-mode.hidden {
+            display: none;
+        }
+
+        .risk-rating {
+            font-weight: bold;
+            padding: 2px 8px;
+            border-radius: 3px;
+            text-align: center;
+            min-width: 60px;
+        }
+
+        .risk-rating.low {
+            background: #2a4a3a;
+            color: #a8d4c5;
+            border: 1px solid #a8d4c5;
+        }
+
+        .risk-rating.medium {
+            background: #4a4a2a;
+            color: #d4c574;
+            border: 1px solid #d4c574;
+        }
+
+        .risk-rating.high {
+            background: #4a2a2a;
+            color: #ff8888;
+            border: 1px solid #ff8888;
+        }
     </style>
 </head>
 <body>
     <div class="terminal-container">
         <div class="terminal-header">
-            <div class="terminal-title">graph_visualizer.exe - CSV Graph Analysis Tool v1.0</div>
+            <div class="terminal-title">graphleak.exe - Graphical Visualization Analysis Tool v1.0</div>
             <div class="terminal-controls">
+                <button class="btn" id="compareBtn" onclick="toggleComparisonMode()">COMPARE</button>
                 <button class="btn" onclick="clearGraph()">CLEAR</button>
                 <button class="btn" onclick="exportGraph()">EXPORT</button>
                 <button class="btn" onclick="resetView()">RESET VIEW</button>
@@ -358,82 +530,166 @@
         </div>
 
         <div class="main-content">
-            <div class="sidebar">
-                <div class="drop-zone" onclick="document.getElementById('csvFile').click()">
-                    <div>DROP CSV FILE HERE</div>
-                    <div style="font-size: 11px; margin-top: 10px;">or click to browse</div>
-                </div>
-                <input type="file" id="csvFile" class="file-input" accept=".csv" onchange="handleFileSelect(event)">
-
-                <div class="stats">
-                    <h3>&gt; GRAPH STATS</h3>
-                    <div class="stat-line">
-                        <span>NODES:</span>
-                        <span id="nodeCount">0</span>
+            <!-- Single Mode View -->
+            <div class="single-mode" id="singleMode">
+                <div class="sidebar">
+                    <div class="drop-zone" onclick="document.getElementById('csvFile').click()">
+                        <div>DROP CSV FILE HERE</div>
+                        <div style="font-size: 11px; margin-top: 10px;">or click to browse</div>
                     </div>
-                    <div class="stat-line">
-                        <span>EDGES:</span>
-                        <span id="edgeCount">0</span>
+                    <input type="file" id="csvFile" class="file-input" accept=".csv" onchange="handleFileSelect(event)">
+
+                    <div class="stats">
+                        <h3>&gt; GRAPH STATS</h3>
+                        <div class="stat-line">
+                            <span>NODES:</span>
+                            <span id="nodeCount">0</span>
+                        </div>
+                        <div class="stat-line">
+                            <span>EDGES:</span>
+                            <span id="edgeCount">0</span>
+                        </div>
+                        <div class="stat-line">
+                            <span>SELECTED:</span>
+                            <span id="selectedCount">none</span>
+                        </div>
                     </div>
-                    <div class="stat-line">
-                        <span>SELECTED:</span>
-                        <span id="selectedCount">none</span>
+
+                    <div class="controls">
+                        <h3>&gt; CONTROLS</h3>
+                        <div class="control-group">
+                            <label>Layout Algorithm:</label>
+                            <select id="layoutSelect" onchange="updateLayout()">
+                                <option value="force">Force-directed</option>
+                                <option value="circle">Circle</option>
+                                <option value="grid">Grid</option>
+                            </select>
+                        </div>
+                        <div class="control-group">
+                            <label>Node Size:</label>
+                            <input type="range" id="nodeSize" min="5" max="30" value="15" onchange="updateNodeSize()">
+                        </div>
+                        <button class="btn" onclick="toggleAddNode()">ADD NODE</button>
+                        <button class="btn" onclick="toggleAddEdge()">ADD EDGE</button>
+                        <button class="btn" onclick="deleteSelected()">DELETE SELECTED</button>
                     </div>
+
+                    <div class="add-node-form" id="addNodeForm">
+                        <h3>&gt; ADD NODE</h3>
+                        <input type="text" id="nodeId" placeholder="Node ID" style="margin-bottom: 10px;">
+                        <input type="text" id="nodeLabel" placeholder="Node Label (optional)" style="margin-bottom: 10px;">
+                        <button class="btn" onclick="addNode()">CREATE</button>
+                        <button class="btn" onclick="cancelAddNode()">CANCEL</button>
+                    </div>
+
+                    <div class="add-edge-form" id="addEdgeForm">
+                        <h3>&gt; ADD EDGE</h3>
+                        <input type="text" id="edgeSource" placeholder="Source Node ID" style="margin-bottom: 10px;">
+                        <input type="text" id="edgeTarget" placeholder="Target Node ID" style="margin-bottom: 10px;">
+                        <button class="btn" onclick="addEdge()">CREATE</button>
+                        <button class="btn" onclick="cancelAddEdge()">CANCEL</button>
+                    </div>
+
+                    <div class="console" id="console"></div>
                 </div>
 
-                <div class="controls">
-                    <h3>&gt; CONTROLS</h3>
-                    <div class="control-group">
-                        <label>Layout Algorithm:</label>
-                        <select id="layoutSelect" onchange="updateLayout()">
-                            <option value="force">Force-directed</option>
-                            <option value="circle">Circle</option>
-                            <option value="grid">Grid</option>
-                        </select>
-                    </div>
-                    <div class="control-group">
-                        <label>Node Size:</label>
-                        <input type="range" id="nodeSize" min="5" max="30" value="15" onchange="updateNodeSize()">
-                    </div>
-                    <button class="btn" onclick="toggleAddNode()">ADD NODE</button>
-                    <button class="btn" onclick="toggleAddEdge()">ADD EDGE</button>
-                    <button class="btn" onclick="deleteSelected()">DELETE SELECTED</button>
+                <div class="graph-container">
+                    <svg class="graph-canvas" id="graphCanvas">
+                        <defs>
+                            <marker id="arrowhead" markerWidth="50" markerHeight="7" 
+                                    refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#87ceaa" />
+                            </marker>
+                        </defs>
+                    </svg>
                 </div>
-
-                <div class="add-node-form" id="addNodeForm">
-                    <h3>&gt; ADD NODE</h3>
-                    <input type="text" id="nodeId" placeholder="Node ID" style="margin-bottom: 10px;">
-                    <input type="text" id="nodeLabel" placeholder="Node Label (optional)" style="margin-bottom: 10px;">
-                    <button class="btn" onclick="addNode()">CREATE</button>
-                    <button class="btn" onclick="cancelAddNode()">CANCEL</button>
-                </div>
-
-                <div class="add-edge-form" id="addEdgeForm">
-                    <h3>&gt; ADD EDGE</h3>
-                    <input type="text" id="edgeSource" placeholder="Source Node ID" style="margin-bottom: 10px;">
-                    <input type="text" id="edgeTarget" placeholder="Target Node ID" style="margin-bottom: 10px;">
-                    <button class="btn" onclick="addEdge()">CREATE</button>
-                    <button class="btn" onclick="cancelAddEdge()">CANCEL</button>
-                </div>
-
-                <div class="console" id="console"></div>
             </div>
 
-            <div class="graph-container">
-                <svg class="graph-canvas" id="graphCanvas">
-                    <defs>
-                        <marker id="arrowhead" markerWidth="10" markerHeight="7" 
-                                refX="9" refY="3.5" orient="auto">
-                            <polygon points="0 0, 10 3.5, 0 7" fill="#87ceaa" />
-                        </marker>
-                    </defs>
-                </svg>
+            <!-- Comparison Mode View -->
+            <div class="comparison-mode" id="comparisonMode">
+                <div class="comparison-graph">
+                    <div class="comparison-graph-header" id="leftGraphHeader">Graph 1</div>
+                    <svg class="comparison-graph-canvas" id="leftGraphCanvas">
+                        <defs>
+                            <marker id="arrowhead-left" markerWidth="10" markerHeight="7" 
+                                    refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#87ceaa" />
+                            </marker>
+                        </defs>
+                    </svg>
+                </div>
+
+                <div class="comparison-graph">
+                    <div class="comparison-graph-header" id="rightGraphHeader">Graph 2</div>
+                    <svg class="comparison-graph-canvas" id="rightGraphCanvas">
+                        <defs>
+                            <marker id="arrowhead-right" markerWidth="10" markerHeight="7" 
+                                    refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#87ceaa" />
+                            </marker>
+                        </defs>
+                    </svg>
+                </div>
+
+                <div class="comparison-panel">
+                    <h3>&gt; COMPARISON</h3>
+                    
+                    <div class="comparison-selectors">
+                        <label>Left Graph:</label>
+                        <select id="leftGraphSelect" onchange="updateComparison()">
+                        </select>
+                        
+                        <label>Right Graph:</label>
+                        <select id="rightGraphSelect" onchange="updateComparison()">
+                        </select>
+                    </div>
+
+                    <div class="comparison-stats">
+                        <h3>&gt; STATISTICS</h3>
+                        
+                        <div class="comparison-stat-row">
+                            <div class="comparison-stat-label">NODES:</div>
+                            <div class="comparison-stat-values">
+                                <div class="comparison-value" id="leftNodeCount">0</div>
+                                <div>vs</div>
+                                <div class="comparison-value" id="rightNodeCount">0</div>
+                                <div class="comparison-diff" id="nodeDiff">+0</div>
+                            </div>
+                        </div>
+                        
+                        <div class="comparison-stat-row">
+                            <div class="comparison-stat-label">EDGES:</div>
+                            <div class="comparison-stat-values">
+                                <div class="comparison-value" id="leftEdgeCount">0</div>
+                                <div>vs</div>
+                                <div class="comparison-value" id="rightEdgeCount">0</div>
+                                <div class="comparison-diff" id="edgeDiff">+0</div>
+                            </div>
+                        </div>
+                        
+                        <div class="comparison-stat-row">
+                            <div class="comparison-stat-label">CHANGE:</div>
+                            <div class="comparison-stat-values">
+                                <div class="comparison-value" id="changePercent">0%</div>
+                            </div>
+                        </div>
+                        
+                        <div class="comparison-stat-row">
+                            <div class="comparison-stat-label">RISK:</div>
+                            <div class="comparison-stat-values">
+                                <div class="risk-rating" id="riskRating">LOW</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="console" id="comparisonConsole"></div>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        // Global variables
+        //Global variables
         let sessions = {
             1: {
                 name: 'Graph_1',
@@ -447,8 +703,11 @@
         let simulation;
         let svg, nodesGroup, edgesGroup, labelsGroup;
         let nodeSize = 15;
+        let isComparisonMode = false;
+        let leftSimulation, rightSimulation;
+        let leftSvg, rightSvg;
 
-        // Console logging function
+        //Console logging function
         function log(message, type = "info") {
             const consoleEl = document.getElementById('console');
             if (consoleEl) {
@@ -503,14 +762,14 @@
             svg.attr("width", container.width)
                .attr("height", container.height);
 
-            // Clear any existing groups
+            //clear any existing groups
             svg.selectAll("g").remove();
 
             edgesGroup = svg.append("g").attr("class", "edges");
             nodesGroup = svg.append("g").attr("class", "nodes");
             labelsGroup = svg.append("g").attr("class", "labels");
 
-            // Add zoom behavior
+            //add zoom
             const zoom = d3.zoom()
                 .scaleExtent([0.1, 10])
                 .on("zoom", (event) => {
@@ -521,7 +780,7 @@
 
             svg.call(zoom);
 
-            // Initialize force simulation
+            //init force simulation
             simulation = d3.forceSimulation()
                 .force("link", d3.forceLink().id(d => d.id).distance(100))
                 .force("charge", d3.forceManyBody().strength(-300))
@@ -548,7 +807,7 @@
             
             log(`Parsing CSV with ${lines.length - 1} rows and headers: ${headers.join(', ')}...`);
             
-            // Determine CSV format
+            //determine CSV format
             if (headers.includes('source') && headers.includes('target')) {
                 log("Detected edge list format", "success");
                 parseEdgeList(lines);
@@ -650,7 +909,7 @@
 
             edges.exit().remove();
 
-            // Update nodes
+            //update nodes
             const nodes = nodesGroup.selectAll(".node")
                 .data(graphData.nodes);
 
@@ -666,7 +925,7 @@
             nodes.merge(nodeEnter);
             nodes.exit().remove();
 
-            // Update labels
+            //update labels
             const labels = labelsGroup.selectAll(".node-label")
                 .data(graphData.nodes);
 
@@ -678,7 +937,7 @@
 
             labels.exit().remove();
 
-            // Update node selection states
+            //update node selection states
             const selectedNodes = getCurrentSelectedNodes();
             nodesGroup.selectAll(".node")
                 .classed("selected", d => selectedNodes.has(d.id));
@@ -970,11 +1229,351 @@
             log("Closed session", "success");
         }
 
-        // Initialize when page loads
+        //comparison mode functions
+        function toggleComparisonMode() {
+            isComparisonMode = !isComparisonMode;
+            const compareBtn = document.getElementById('compareBtn');
+            const singleMode = document.getElementById('singleMode');
+            const comparisonMode = document.getElementById('comparisonMode');
+            
+            if (isComparisonMode) {
+                if (Object.keys(sessions).length < 2) {
+                    log("Need at least 2 sessions to compare", "error");
+                    isComparisonMode = false;
+                    return;
+                }
+                
+                compareBtn.classList.add('active');
+                compareBtn.textContent = 'EXIT COMPARE';
+                singleMode.classList.add('hidden');
+                comparisonMode.classList.add('active');
+                
+                initializeComparisonMode();
+                log("Entered comparison mode", "success");
+            } else {
+                compareBtn.classList.remove('active');
+                compareBtn.textContent = 'COMPARE';
+                singleMode.classList.remove('hidden');
+                comparisonMode.classList.remove('active');
+                
+                log("Exited comparison mode", "success");
+            }
+        }
+
+        function initializeComparisonMode() {
+            populateComparisonSelectors();
+            initializeComparisonGraphs();
+            updateComparison();
+        }
+
+        function populateComparisonSelectors() {
+            const leftSelect = document.getElementById('leftGraphSelect');
+            const rightSelect = document.getElementById('rightGraphSelect');
+            
+            leftSelect.innerHTML = '';
+            rightSelect.innerHTML = '';
+            
+            const sessionIds = Object.keys(sessions);
+            sessionIds.forEach(sessionId => {
+                const session = sessions[sessionId];
+                
+                const leftOption = document.createElement('option');
+                leftOption.value = sessionId;
+                leftOption.textContent = session.name;
+                leftSelect.appendChild(leftOption);
+                
+                const rightOption = document.createElement('option');
+                rightOption.value = sessionId;
+                rightOption.textContent = session.name;
+                rightSelect.appendChild(rightOption);
+            });
+            
+            //set default selections
+            if (sessionIds.length >= 2) {
+                leftSelect.value = sessionIds[0];
+                rightSelect.value = sessionIds[1];
+            }
+        }
+
+        function initializeComparisonGraphs() {
+            //init left graph
+            leftSvg = d3.select("#leftGraphCanvas");
+            const leftContainer = leftSvg.node().parentElement.getBoundingClientRect();
+            leftSvg.attr("width", leftContainer.width)
+                   .attr("height", leftContainer.height);
+            
+            leftSvg.selectAll("g").remove();
+            const leftEdgesGroup = leftSvg.append("g").attr("class", "edges");
+            const leftNodesGroup = leftSvg.append("g").attr("class", "nodes");
+            const leftLabelsGroup = leftSvg.append("g").attr("class", "labels");
+            
+            //init right graph
+            rightSvg = d3.select("#rightGraphCanvas");
+            const rightContainer = rightSvg.node().parentElement.getBoundingClientRect();
+            rightSvg.attr("width", rightContainer.width)
+                    .attr("height", rightContainer.height);
+            
+            rightSvg.selectAll("g").remove();
+            const rightEdgesGroup = rightSvg.append("g").attr("class", "edges");
+            const rightNodesGroup = rightSvg.append("g").attr("class", "nodes");
+            const rightLabelsGroup = rightSvg.append("g").attr("class", "labels");
+            
+            //add zoom behavior
+            const leftZoom = d3.zoom()
+                .scaleExtent([0.1, 10])
+                .on("zoom", (event) => {
+                    leftEdgesGroup.attr("transform", event.transform);
+                    leftNodesGroup.attr("transform", event.transform);
+                    leftLabelsGroup.attr("transform", event.transform);
+                });
+            
+            const rightZoom = d3.zoom()
+                .scaleExtent([0.1, 10])
+                .on("zoom", (event) => {
+                    rightEdgesGroup.attr("transform", event.transform);
+                    rightNodesGroup.attr("transform", event.transform);
+                    rightLabelsGroup.attr("transform", event.transform);
+                });
+            
+            leftSvg.call(leftZoom);
+            rightSvg.call(rightZoom);
+            
+            //init simulations
+            leftSimulation = d3.forceSimulation()
+                .force("link", d3.forceLink().id(d => d.id).distance(80))
+                .force("charge", d3.forceManyBody().strength(-200))
+                .force("center", d3.forceCenter(leftContainer.width / 2, leftContainer.height / 2))
+                .force("collision", d3.forceCollide().radius(nodeSize + 3));
+            
+            rightSimulation = d3.forceSimulation()
+                .force("link", d3.forceLink().id(d => d.id).distance(80))
+                .force("charge", d3.forceManyBody().strength(-200))
+                .force("center", d3.forceCenter(rightContainer.width / 2, rightContainer.height / 2))
+                .force("collision", d3.forceCollide().radius(nodeSize + 3));
+        }
+
+        function updateComparison() {
+            const leftSessionId = document.getElementById('leftGraphSelect').value;
+            const rightSessionId = document.getElementById('rightGraphSelect').value;
+            
+            if (!leftSessionId || !rightSessionId) return;
+            
+            const leftSession = sessions[leftSessionId];
+            const rightSession = sessions[rightSessionId];
+            
+            // Update headers
+            document.getElementById('leftGraphHeader').textContent = leftSession.name;
+            document.getElementById('rightGraphHeader').textContent = rightSession.name;
+            
+            // Update graphs
+            updateComparisonGraph('left', leftSession.graphData);
+            updateComparisonGraph('right', rightSession.graphData);
+            
+            // Update statistics
+            updateComparisonStats(leftSession.graphData, rightSession.graphData);
+        }
+
+        function updateComparisonGraph(side, graphData) {
+            const isLeft = side === 'left';
+            const svg = isLeft ? leftSvg : rightSvg;
+            const simulation = isLeft ? leftSimulation : rightSimulation;
+            const markerId = isLeft ? 'arrowhead-left' : 'arrowhead-right';
+            
+            const edgesGroup = svg.select('.edges');
+            const nodesGroup = svg.select('.nodes');
+            const labelsGroup = svg.select('.labels');
+            
+            simulation.nodes(graphData.nodes);
+            simulation.force("link").links(graphData.edges);
+            
+            // Update edges
+            const edges = edgesGroup.selectAll(".edge")
+                .data(graphData.edges);
+            
+            edges.enter().append("line")
+                .attr("class", "edge")
+                .attr("marker-end", `url(#${markerId})`)
+                .merge(edges);
+            
+            edges.exit().remove();
+            
+            // Update nodes
+            const nodes = nodesGroup.selectAll(".node")
+                .data(graphData.nodes);
+            
+            nodes.enter().append("circle")
+                .attr("class", "node")
+                .attr("r", nodeSize * 0.8)
+                .merge(nodes);
+            
+            nodes.exit().remove();
+            
+            // Update labels
+            const labels = labelsGroup.selectAll(".node-label")
+                .data(graphData.nodes);
+            
+            labels.enter().append("text")
+                .attr("class", "node-label")
+                .text(d => d.label || d.id)
+                .attr("dy", 4)
+                .style("font-size", "10px")
+                .merge(labels);
+            
+            labels.exit().remove();
+            
+            simulation.on("tick", () => {
+                edgesGroup.selectAll(".edge")
+                    .attr("x1", d => d.source.x)
+                    .attr("y1", d => d.source.y)
+                    .attr("x2", d => d.target.x)
+                    .attr("y2", d => d.target.y);
+                
+                nodesGroup.selectAll(".node")
+                    .attr("cx", d => d.x)
+                    .attr("cy", d => d.y);
+                
+                labelsGroup.selectAll(".node-label")
+                    .attr("x", d => d.x)
+                    .attr("y", d => d.y);
+            });
+            
+            simulation.alpha(1).restart();
+        }
+
+        function updateComparisonStats(leftData, rightData) {
+            const leftNodeCount = leftData.nodes.length;
+            const rightNodeCount = rightData.nodes.length;
+            const leftEdgeCount = leftData.edges.length;
+            const rightEdgeCount = rightData.edges.length;
+            
+            //update node counts
+            document.getElementById('leftNodeCount').textContent = leftNodeCount;
+            document.getElementById('rightNodeCount').textContent = rightNodeCount;
+            
+            const nodeDiff = rightNodeCount - leftNodeCount;
+            const nodeDiffEl = document.getElementById('nodeDiff');
+            nodeDiffEl.textContent = (nodeDiff >= 0 ? '+' : '') + nodeDiff;
+            nodeDiffEl.className = 'comparison-diff ' + (nodeDiff > 0 ? 'positive' : nodeDiff < 0 ? 'negative' : '');
+            
+            //update edge counts
+            document.getElementById('leftEdgeCount').textContent = leftEdgeCount;
+            document.getElementById('rightEdgeCount').textContent = rightEdgeCount;
+            
+            const edgeDiff = rightEdgeCount - leftEdgeCount;
+            const edgeDiffEl = document.getElementById('edgeDiff');
+            edgeDiffEl.textContent = (edgeDiff >= 0 ? '+' : '') + edgeDiff;
+            edgeDiffEl.className = 'comparison-diff ' + (edgeDiff > 0 ? 'positive' : edgeDiff < 0 ? 'negative' : '');
+            
+            //calculate change percentage
+            const changeData = calculateNetworkChange(leftData, rightData);
+            const changePercent = changeData.percentage;
+            
+            //update change percentage
+            document.getElementById('changePercent').textContent = changePercent.toFixed(1) + '%';
+            
+            //update risk rating
+            const riskRatingEl = document.getElementById('riskRating');
+            let riskLevel, riskClass;
+            
+            if (changePercent < 10) {
+                riskLevel = 'LOW';
+                riskClass = 'low';
+            } else if (changePercent < 50) {
+                riskLevel = 'MEDIUM';
+                riskClass = 'medium';
+            } else {
+                riskLevel = 'HIGH';
+                riskClass = 'high';
+            }
+            
+            riskRatingEl.textContent = riskLevel;
+            riskRatingEl.className = 'risk-rating ' + riskClass;
+            
+            //log change details to comparison console
+            const compConsole = document.getElementById('comparisonConsole');
+            if (compConsole) {
+                const logLine = document.createElement('div');
+                logLine.className = 'console-line success';
+                logLine.textContent = `> Network change: ${changePercent.toFixed(1)}% - Risk: ${riskLevel}`;
+                compConsole.appendChild(logLine);
+                
+                if (changeData.details) {
+                    const detailLine = document.createElement('div');
+                    detailLine.className = 'console-line';
+                    detailLine.textContent = `> ${changeData.details}`;
+                    compConsole.appendChild(detailLine);
+                }
+                
+                compConsole.scrollTop = compConsole.scrollHeight;
+            }
+        }
+        
+        function calculateNetworkChange(leftData, rightData) {
+            //create sets of node IDs for comparison
+            const leftNodeIds = new Set(leftData.nodes.map(n => n.id));
+            const rightNodeIds = new Set(rightData.nodes.map(n => n.id));
+            
+            // create sets of edge signatures for comparison
+            const leftEdges = new Set(leftData.edges.map(e => 
+                `${e.source.id || e.source}->${e.target.id || e.target}`
+            ));
+            const rightEdges = new Set(rightData.edges.map(e => 
+                `${e.source.id || e.source}->${e.target.id || e.target}`
+            ));
+            
+            //calc node changes
+            const commonNodes = new Set([...leftNodeIds].filter(id => rightNodeIds.has(id)));
+            const addedNodes = new Set([...rightNodeIds].filter(id => !leftNodeIds.has(id)));
+            const removedNodes = new Set([...leftNodeIds].filter(id => !rightNodeIds.has(id)));
+            
+            //calc edge changes
+            const commonEdges = new Set([...leftEdges].filter(edge => rightEdges.has(edge)));
+            const addedEdges = new Set([...rightEdges].filter(edge => !leftEdges.has(edge)));
+            const removedEdges = new Set([...leftEdges].filter(edge => !rightEdges.has(edge)));
+            
+            //calc total unique elements in both graphs
+            const totalUniqueNodes = new Set([...leftNodeIds, ...rightNodeIds]).size;
+            const totalUniqueEdges = new Set([...leftEdges, ...rightEdges]).size;
+            
+            //calc change metrics
+            const nodeChanges = addedNodes.size + removedNodes.size;
+            const edgeChanges = addedEdges.size + removedEdges.size;
+            
+            //calc percentage change
+            //if there are no elements in either graph, change is 0%
+            //otherwise, calculate based on total unique elements
+            let changePercentage = 0;
+            
+            if (totalUniqueNodes + totalUniqueEdges > 0) {
+                const totalChanges = nodeChanges + edgeChanges;
+                const totalElements = totalUniqueNodes + totalUniqueEdges;
+                changePercentage = (totalChanges / totalElements) * 100;
+            }
+            
+            //create details string
+            const details = `Nodes: +${addedNodes.size}/-${removedNodes.size}, Edges: +${addedEdges.size}/-${removedEdges.size}`;
+            
+            return {
+                percentage: changePercentage,
+                nodeChanges: {
+                    added: addedNodes.size,
+                    removed: removedNodes.size,
+                    common: commonNodes.size
+                },
+                edgeChanges: {
+                    added: addedEdges.size,
+                    removed: removedEdges.size,
+                    common: commonEdges.size
+                },
+                details: details
+            };
+        }
+
+        //init when page loads
         function initializeApp() {
             log("Application starting up...", "success");
             
-            // Setup drag and drop functionality
+            //setup drag and drop functionality
             const dropZone = document.querySelector('.drop-zone');
             
             if (dropZone) {
@@ -1016,7 +1615,7 @@
                 log("Error: Drop zone not found!", "error");
             }
             
-            // Check if D3 is loaded and initialize
+            //check if D3 is loaded and initialize
             if (typeof d3 !== 'undefined') {
                 log("D3.js loaded successfully", "success");
                 initializeGraph();
@@ -1025,7 +1624,7 @@
             }
         }
 
-        // Wait for DOM to be ready
+        //wait for DOM to be ready
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', initializeApp);
         } else {
