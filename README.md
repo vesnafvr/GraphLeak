@@ -1,4 +1,4 @@
-GraphLeak is a tool created to theoretically visualize data poisoning via graphs. 
+GraphLeak is a tool created to visualize data poisoning via graphs. 
 
 **Setup Instructions:**
 
