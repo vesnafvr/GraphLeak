@@ -9,3 +9,5 @@ GraphLeak is a tool created to visualize data poisoning via graphs.
  	5. Add the new graph with the additional tab option
 	6. Enter compare mode with top right compare option
   
+<img width="1260" height="582" alt="image" src="https://github.com/user-attachments/assets/2c3e5c7a-b398-4ef2-aae6-42445ee12bbc" />
+Here is what compare mode will look like once you've uploaded two graphs. You will be able to see comparison statistics on the right and also a risk rating, where low is <10 percent poisoned, medium is between 10 and 50, and high is 50 percent or above poisoned.
