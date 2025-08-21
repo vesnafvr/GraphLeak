@@ -4,7 +4,7 @@ GraphLeak is a tool created to visualize data poisoning via graphs.
 
 	1. Access GraphLeak locally by downloading index.html and opening your own html in a browser or accessing vesnafvr.github.io/GraphLeak
 	2. Upload a CSV file with chosen edges (source nodes and target nodes), or use provided stress.csv located in the repo
-	3. Add or subtract edges
+	3. Add or subtract nodes
 	4. Export a new graph with top right export option
  	5. Add the new graph with the additional tab option
 	6. Enter compare mode with top right compare option
